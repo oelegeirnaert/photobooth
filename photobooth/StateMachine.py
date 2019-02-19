@@ -449,7 +449,7 @@ class ReviewState(State):
         return self._picture
 
     def handleEvent(self, event, context):
-
+        
         if isinstance(event, GuiEvent) and event.name == 'postprocess':
             context.state = PostprocessState()
         else:
@@ -463,6 +463,12 @@ class PostprocessState(State):
         super().__init__()
 
     def handleEvent(self, event, context):
+        
+        logging.debug("My name is %s" %event.name)
+        
+        if (isinstance(event, GpioEvent) and
+           event.name == 'print'):
+               logging.debug("PRINT ME!")
 
         if ((isinstance(event, GuiEvent) or isinstance(event, GpioEvent)) and
            event.name == 'idle'):

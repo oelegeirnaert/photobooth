@@ -76,7 +76,7 @@ class CameraGphoto2(CameraInterface):
         self._imageformatsd = imageformatsd.get_value()
         if 'raw' in self._imageformatsd.lower():
             imageformatsd.set_value('Large Fine JPEG')
-
+        
         # make sure autopoweroff is disabled
         # this doesn't seem to work
         # autopoweroff = config.get_child_by_name('autopoweroff')
@@ -86,8 +86,11 @@ class CameraGphoto2(CameraInterface):
         #     autopoweroff.set_value('0')
 
         # apply configuration and print current config
+        logging.info("set config")
         self._cap.set_config(config)
+        logging.info("print config")
         self._printConfig(self._cap.get_config())
+        
 
     @staticmethod
     def _configTreeToText(tree, indent=0):

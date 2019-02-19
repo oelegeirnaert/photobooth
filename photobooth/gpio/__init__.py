@@ -35,6 +35,7 @@ class Gpio:
         self._gpio = None
 
         self._is_trigger = False
+        self._is_print_trigger = False
         self._is_enabled = config.getBool('Gpio', 'enable')
         self._countdown_time = config.getInt('Photobooth', 'countdown_time')
 
@@ -47,6 +48,7 @@ class Gpio:
 
             lamp_pin = config.getInt('Gpio', 'lamp_pin')
             trigger_pin = config.getInt('Gpio', 'trigger_pin')
+            print_pin = config.getInt('Gpio', 'print_pin')
             exit_pin = config.getInt('Gpio', 'exit_pin')
 
             rgb_pin = (config.getInt('Gpio', 'chan_r_pin'),
@@ -54,11 +56,12 @@ class Gpio:
                        config.getInt('Gpio', 'chan_b_pin'))
 
             logging.info(('GPIO enabled (lamp_pin=%d, trigger_pin=%d, '
-                         'exit_pin=%d, rgb_pins=(%d, %d, %d))'),
-                         lamp_pin, trigger_pin, exit_pin, *rgb_pin)
+                         'exit_pin=%d, rgb_pins=(%d, %d, %d)), print_pin=%d'),
+                         lamp_pin, trigger_pin, exit_pin, *rgb_pin, print_pin)
 
             self._gpio.setButton(trigger_pin, self.trigger)
             self._gpio.setButton(exit_pin, self.exit)
+            self._gpio.setButton(print_pin, self.print_trigger)
             self._lamp = self._gpio.setLamp(lamp_pin)
             self._rgb = self._gpio.setRgb(rgb_pin)
         else:
@@ -96,16 +99,24 @@ class Gpio:
             self._gpio.teardown()
 
     def enableTrigger(self):
-
+        
         if self._is_enabled:
             self._is_trigger = True
             self._gpio.lampOn(self._lamp)
 
     def disableTrigger(self):
-
+        
         if self._is_enabled:
             self._is_trigger = False
             self._gpio.lampOff(self._lamp)
+            
+    def enablePrintTrigger(self):
+        if self._is_enabled:
+            self._is_print_trigger = True
+            
+    def disablePrintTrigger(self):
+        if self._is_enabled:
+            self._is_print_trigger = False
 
     def setRgbColor(self, r, g, b):
 
@@ -133,6 +144,14 @@ class Gpio:
         if self._is_trigger:
             self.disableTrigger()
             self._comm.send(Workers.MASTER, StateMachine.GpioEvent('trigger'))
+    
+    def print_trigger(self):
+        
+        if self._is_print_trigger:
+            logging.debug("IN TRIGGERr")
+            self.disablePrintTrigger()
+            self._comm.send(Workers.MASTER, StateMachine.GpioEvent('print'))
+            
 
     def exit(self):
 
@@ -143,7 +162,8 @@ class Gpio:
     def showIdle(self):
 
         self.enableTrigger()
-
+        self.disablePrintTrigger()
+        
         if self._is_enabled:
             h, s, v = 0, 1, 1
             while self._comm.empty(Workers.GPIO):
@@ -176,8 +196,10 @@ class Gpio:
         self.setRgbColor(0, .15, 0)
 
     def showPostprocess(self):
+        
+        self.enablePrintTrigger()
 
-        pass
+        #pass
 
 
 class Entities:
@@ -220,7 +242,7 @@ class Entities:
         except self.GPIOPinInUse:
             logging.error('Pin {} already in use!'.format(bcm_pin))
             return None
-
+        
     def setRgb(self, bcm_pins):
 
         try:
