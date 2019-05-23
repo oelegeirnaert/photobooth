@@ -188,7 +188,7 @@ setup(
         'Pillow',
         'gpiozero',
         'gphoto2',
-        'simple-http-server,
+        'simple-http-server',
         'qrcode',
         ],
 
