@@ -188,6 +188,8 @@ setup(
         'Pillow',
         'gpiozero',
         'gphoto2',
+        'simple-http-server',
+        'qrcode',
         ],
 
     # List additional groups of dependencies here (e.g. development
